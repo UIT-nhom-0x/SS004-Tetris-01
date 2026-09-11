@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/ConsoleRenderer.hpp"
+#include "features/Collision.hpp"
 #include "core/GameBoard.hpp"
 #include "core/Input.hpp"
 #include "core/Types.hpp"
@@ -19,8 +20,9 @@ public:
     void run();
 
     /// Applies a translation only when every candidate block is placeable.
-    /// Occupied-cell validation is delegated to Collision after integration.
+    /// Occupied-cell validation is delegated to Collision.
     bool moveCurrentPiece(int dx, int dy);
+    bool rotateCurrentPiece();
 
     /// Advances gravity by one row; returns true when game state changed.
     bool tick();
@@ -40,6 +42,7 @@ private:
     GameBoard board_;
     ActivePiece activePiece_;
     ActivePiece nextPiece_;
+    Collision collision_;
     Input input_;
     ConsoleRenderer renderer_;
     bool running_{true};

@@ -1,5 +1,8 @@
 #include "core/Game.hpp"
 
+#include "features/Collision.hpp"
+#include "features/Tetromino.hpp"
+
 #include <chrono>
 #include <cstdio>
 #include <iostream>
@@ -112,12 +115,20 @@ void Game::run() {
 bool Game::moveCurrentPiece(int dx, int dy) {
     const ActivePiece candidate = translated(activePiece_, dx, dy);
 
-    // TODO(Tu): replace boundary-only validation with
-    // Collision::canPlace(board_, candidate) during integration.
-    for (const Position& block : candidate.blocks) {
-        if (!board_.isInside(block.x, block.y)) {
-            return false;
-        }
+    if (!collision_.canPlace(board_, candidate)) {
+        return false;
+    }
+
+    activePiece_ = candidate;
+    return true;
+}
+
+bool Game::rotateCurrentPiece() {
+    Tetromino tetromino;
+    const ActivePiece candidate = tetromino.getRotated(activePiece_);
+
+    if (!collision_.canPlace(board_, candidate)) {
+        return false;
     }
 
     activePiece_ = candidate;
@@ -129,11 +140,14 @@ bool Game::tick() {
         return true;
     }
 
-    // TODO(Tu): lock the piece and clear completed lines.
+    collision_.lockPiece(board_, activePiece_);
+    collision_.clearCompletedLines(board_);
+    activePiece_ = nextPiece_;
+    Tetromino tetromino;
+    nextPiece_ = tetromino.createPiece();
     // TODO(Gam): update the score using the cleared-line count.
-    // TODO(Huy): promote nextPiece_ and generate the following preview piece.
     // TODO(Khanh): set Game Over when the next piece cannot spawn.
-    return false;
+    return true;
 }
 
 void Game::restart() {
@@ -168,8 +182,7 @@ bool Game::handleInput(InputAction action) {
         case InputAction::MoveDown:
             return moveCurrentPiece(0, 1);
         case InputAction::Rotate:
-            // TODO(Huy): integrate Tetromino rotation.
-            return false;
+            return rotateCurrentPiece();
         case InputAction::Restart:
             restart();
             return true;

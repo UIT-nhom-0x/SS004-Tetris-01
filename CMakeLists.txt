@@ -40,7 +40,10 @@ add_executable(core_test tests/core_test.cpp)
 target_link_libraries(core_test PRIVATE tetris_core)
 
 add_executable(tetromino_test tests/tetromino_test.cpp)
+add_executable(collision_test tests/collision_test.cpp)
+target_link_libraries(collision_test PRIVATE tetris_core)
 target_link_libraries(tetromino_test PRIVATE tetris_core)
 
 add_test(NAME core_test COMMAND core_test)
 add_test(NAME tetromino_test COMMAND tetromino_test)
+add_test(NAME collision_test COMMAND collision_test)
