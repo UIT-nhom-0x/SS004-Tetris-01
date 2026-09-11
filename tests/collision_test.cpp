@@ -170,33 +170,47 @@ void testClearTopLineEmptiesReplacementCells() {
            "replacement cells with nothing above must be empty");
 }
 
-void testGameTickLocksPieceIntoBoard() {
+void testGameTickLocksPieceAndPromotesNextPiece() {
     tetris::Game game;
+    const tetris::ActivePiece expectedNext = game.nextPiece();
 
-    while (game.tick()) {
+    for (int tick = 0; tick < tetris::GameBoard::HEIGHT; ++tick) {
+        game.tick();
+        if (game.activePiece().type == expectedNext.type) {
+            break;
+        }
     }
 
-    const tetris::ActivePiece locked = game.activePiece();
-    for (const tetris::Position& block : locked.blocks) {
-        expect(game.board().getCell(block.x, block.y) ==
-                   tetris::cellStateFor(locked.type),
-               "gravity must lock the piece at its final cells");
+    expect(game.activePiece().type == expectedNext.type,
+           "blocked piece must switch to the next piece");
+    expect(game.activePiece().rotation == expectedNext.rotation,
+           "promoted piece must preserve its rotation");
+    expect(game.activePiece().origin == expectedNext.origin,
+           "promoted piece must preserve its origin");
+    expect(game.activePiece().blocks == expectedNext.blocks,
+           "promoted piece must preserve its blocks");
+
+    const tetris::Position lockedBlocks[] = {
+        {4, 18},
+        {5, 18},
+        {4, 19},
+        {5, 19},
+    };
+    for (const tetris::Position& block : lockedBlocks) {
+        expect(game.board().getCell(block.x, block.y) == tetris::CellState::O,
+               "previous piece must lock before the next piece is promoted");
     }
-    expect(!game.moveCurrentPiece(0, 1), "locked piece must rest on the floor");
 }
 
 void testGameMovementRejectsBlockedCandidates() {
     tetris::Game game;
+    expect(game.moveCurrentPiece(0, 18),
+           "piece must move to the bottom for test setup");
 
-    while (game.tick()) {
-    }
+    const auto beforeBlocks = game.activePiece().blocks;
     expect(!game.moveCurrentPiece(0, 1),
-           "tick must not move a piece below the floor");
-
-    const int beforeY = game.activePiece().blocks[0].y;
-    expect(!game.moveCurrentPiece(0, 5),
-           "candidate crossing the floor must be rejected atomically");
-    expect(game.activePiece().blocks[0].y == beforeY,
+           "piece must not move below the floor");
+    expect(game.activePiece().blocks == beforeBlocks,
            "rejected candidate must not mutate the piece");
 }
 
@@ -212,7 +226,7 @@ int main() {
         testClearSingleLineShiftsRowsDown();
         testClearMultipleConsecutiveLines();
         testClearTopLineEmptiesReplacementCells();
-        testGameTickLocksPieceIntoBoard();
+        testGameTickLocksPieceAndPromotesNextPiece();
         testGameMovementRejectsBlockedCandidates();
         std::cout << "collision_test: all passed\n";
         return 0;

@@ -1,6 +1,7 @@
 #include "core/Game.hpp"
 
 #include "features/Collision.hpp"
+#include "features/Tetromino.hpp"
 
 #include <chrono>
 #include <cstdio>
@@ -129,10 +130,12 @@ bool Game::tick() {
 
     collision_.lockPiece(board_, activePiece_);
     collision_.clearCompletedLines(board_);
+    activePiece_ = nextPiece_;
+    Tetromino tetromino;
+    nextPiece_ = tetromino.createPiece();
     // TODO(Gam): update the score using the cleared-line count.
-    // TODO(Huy): promote nextPiece_ and generate the following preview piece.
     // TODO(Khanh): set Game Over when the next piece cannot spawn.
-    return false;
+    return true;
 }
 
 void Game::restart() {
