@@ -1,5 +1,7 @@
 #include "core/Game.hpp"
 
+#include "features/Collision.hpp"
+
 #include <chrono>
 #include <cstdio>
 #include <iostream>
@@ -112,12 +114,8 @@ void Game::run() {
 bool Game::moveCurrentPiece(int dx, int dy) {
     const ActivePiece candidate = translated(activePiece_, dx, dy);
 
-    // TODO(Tu): replace boundary-only validation with
-    // Collision::canPlace(board_, candidate) during integration.
-    for (const Position& block : candidate.blocks) {
-        if (!board_.isInside(block.x, block.y)) {
-            return false;
-        }
+    if (!collision_.canPlace(board_, candidate)) {
+        return false;
     }
 
     activePiece_ = candidate;
@@ -129,7 +127,8 @@ bool Game::tick() {
         return true;
     }
 
-    // TODO(Tu): lock the piece and clear completed lines.
+    collision_.lockPiece(board_, activePiece_);
+    collision_.clearCompletedLines(board_);
     // TODO(Gam): update the score using the cleared-line count.
     // TODO(Huy): promote nextPiece_ and generate the following preview piece.
     // TODO(Khanh): set Game Over when the next piece cannot spawn.

@@ -21,7 +21,4 @@ public:
     int clearCompletedLines(GameBoard& board) const;
 };
 
-// TODO(Tu): implement collision and line clearing in
-// src/features/collision/.
-
 }  // namespace tetris
