@@ -22,6 +22,7 @@ public:
     /// Applies a translation only when every candidate block is placeable.
     /// Occupied-cell validation is delegated to Collision.
     bool moveCurrentPiece(int dx, int dy);
+    bool rotateCurrentPiece();
 
     /// Advances gravity by one row; returns true when game state changed.
     bool tick();

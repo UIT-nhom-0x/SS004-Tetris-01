@@ -214,6 +214,20 @@ void testGameMovementRejectsBlockedCandidates() {
            "rejected candidate must not mutate the piece");
 }
 
+void testGameRotationAppliesTetrominoCandidate() {
+    tetris::Game game;
+    tetris::Tetromino tetromino;
+    const tetris::ActivePiece original = game.activePiece();
+    const tetris::ActivePiece expected = tetromino.getRotated(original);
+
+    expect(game.rotateCurrentPiece(),
+           "rotation input must apply a placeable candidate");
+    expect(game.activePiece().rotation == expected.rotation,
+           "rotation input must update rotation state");
+    expect(game.activePiece().blocks == expected.blocks,
+           "rotation input must use Tetromino block coordinates");
+}
+
 }  // namespace
 
 int main() {
@@ -228,6 +242,7 @@ int main() {
         testClearTopLineEmptiesReplacementCells();
         testGameTickLocksPieceAndPromotesNextPiece();
         testGameMovementRejectsBlockedCandidates();
+        testGameRotationAppliesTetrominoCandidate();
         std::cout << "collision_test: all passed\n";
         return 0;
     } catch (const std::exception& ex) {

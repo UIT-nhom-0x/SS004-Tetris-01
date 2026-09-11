@@ -123,6 +123,18 @@ bool Game::moveCurrentPiece(int dx, int dy) {
     return true;
 }
 
+bool Game::rotateCurrentPiece() {
+    Tetromino tetromino;
+    const ActivePiece candidate = tetromino.getRotated(activePiece_);
+
+    if (!collision_.canPlace(board_, candidate)) {
+        return false;
+    }
+
+    activePiece_ = candidate;
+    return true;
+}
+
 bool Game::tick() {
     if (moveCurrentPiece(0, 1)) {
         return true;
@@ -170,8 +182,7 @@ bool Game::handleInput(InputAction action) {
         case InputAction::MoveDown:
             return moveCurrentPiece(0, 1);
         case InputAction::Rotate:
-            // TODO(Huy): integrate Tetromino rotation.
-            return false;
+            return rotateCurrentPiece();
         case InputAction::Restart:
             restart();
             return true;
