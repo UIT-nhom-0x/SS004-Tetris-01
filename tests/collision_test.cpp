@@ -93,6 +93,36 @@ void testLockPieceStoresTypeAndColor() {
     expect(occupiedCells == 4, "locking must write exactly four cells");
 }
 
+void testLockedPieceCompletesAndClearsLine() {
+    tetris::Tetromino factory;
+    tetris::Collision collision;
+    tetris::GameBoard board;
+
+    for (int x = 0; x < 8; ++x) {
+        board.setCell(x, 19, tetris::CellState::J);
+    }
+
+    const auto piece = translated(
+        factory.createPiece(tetris::TetrominoType::O), 4, 18);
+    collision.lockPiece(board, piece);
+
+    for (int x = 0; x < board.width(); ++x) {
+        expect(tetris::isOccupied(board.getCell(x, 19)),
+               "locking must complete the bottom row");
+    }
+
+    const int clearedLines = collision.clearCompletedLines(board);
+    expect(clearedLines == 1,
+           "completed row after locking must return one cleared line");
+    expect(board.getCell(8, 19) == tetris::CellState::O &&
+               board.getCell(9, 19) == tetris::CellState::O,
+           "blocks above the cleared row must shift down");
+    for (int x = 0; x < 8; ++x) {
+        expect(board.getCell(x, 19) == tetris::CellState::Empty,
+               "cleared cells must be replaced by the row above");
+    }
+}
+
 void testClearWithoutFullLinesKeepsBoard() {
     tetris::Collision collision;
     tetris::GameBoard board;
@@ -131,21 +161,22 @@ void testClearMultipleConsecutiveLines() {
     tetris::GameBoard board;
 
     for (int x = 0; x < board.width(); ++x) {
+        board.setCell(x, 16, tetris::CellState::J);
         board.setCell(x, 17, tetris::CellState::S);
         board.setCell(x, 18, tetris::CellState::T);
         board.setCell(x, 19, tetris::CellState::Z);
     }
-    board.setCell(0, 16, tetris::CellState::I);
-    board.setCell(9, 16, tetris::CellState::L);
+    board.setCell(0, 15, tetris::CellState::I);
+    board.setCell(9, 15, tetris::CellState::L);
 
-    expect(collision.clearCompletedLines(board) == 3,
-           "all consecutive full rows must be cleared");
+    expect(collision.clearCompletedLines(board) == 4,
+           "four consecutive full rows must be cleared");
     expect(board.getCell(0, 19) == tetris::CellState::I &&
                board.getCell(9, 19) == tetris::CellState::L,
-               "surviving blocks must keep their colors after falling");
+           "surviving blocks must keep their colors after falling");
     expect(board.getCell(1, 19) == tetris::CellState::Empty,
            "fallen row must be empty beside surviving blocks");
-    for (int y = 16; y <= 18; ++y) {
+    for (int y = 15; y <= 18; ++y) {
         for (int x = 0; x < board.width(); ++x) {
             expect(board.getCell(x, y) == tetris::CellState::Empty,
                    "cleared region must be empty");
@@ -236,6 +267,7 @@ int main() {
         testWallAndFloorCollisionRejected();
         testBlockCollisionRejected();
         testLockPieceStoresTypeAndColor();
+        testLockedPieceCompletesAndClearsLine();
         testClearWithoutFullLinesKeepsBoard();
         testClearSingleLineShiftsRowsDown();
         testClearMultipleConsecutiveLines();
